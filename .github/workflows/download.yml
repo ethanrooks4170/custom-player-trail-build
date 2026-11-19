@@ -1,0 +1,29 @@
+name: Package verified Windows download
+on:
+  push:
+    paths: ['.github/workflows/download.yml']
+permissions:
+  contents: write
+  actions: read
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 44636709572
+          github-token: ${{ github.token }}
+          name: Custom-Player-Trail-Windows
+          path: artifact
+      - name: Verify Windows package and publish download
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          file=$(find artifact -type f -name 'gdemerald.customplayertrail.geode' -print -quit)
+          test -n "$file"
+          unzip -tq "$file"
+          unzip -p "$file" mod.json | jq -e '.id == "gdemerald.customplayertrail" and .gd.win == "2.2081"'
+          unzip -p "$file" gdemerald.customplayertrail.dll > trail.dll
+          file trail.dll | grep -E 'PE32\+.*x86-64'
+          gh release create gd-2.2081-win "$file" --repo "$GITHUB_REPOSITORY" --target d03eaebfd51f9e21162a321b419901ac96b7020b --title 'Custom Player Trail for Geometry Dash 2.2081 (Windows)' --notes 'Unofficial Windows build of gdemerald’s Custom Player Trail for Geometry Dash 2.2081 and Geode 5.11.2. Compiled and package-checked. In-game behavior has not been verified.'
