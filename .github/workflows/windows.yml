@@ -1,0 +1,22 @@
+name: Build Windows mod
+on: [push, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract source
+        run: Expand-Archive Custom-Player-Trail-2.2081-source.zip -DestinationPath mod
+      - uses: geode-sdk/build-geode-mod@main
+        id: build
+        with:
+          sdk: v5.11.2
+          path: mod
+          target: Win64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Custom-Player-Trail-Windows
+          path: ${{ steps.build.outputs.build-output }}
+          if-no-files-found: error
